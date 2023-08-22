@@ -1,0 +1,42 @@
+{
+    "warrior": {
+        "cost": 1,
+        "attack_ranged": "",
+        "attack_melee": "d6",
+        "defense": "d6",
+        "movement": 2,
+        "range": 0
+    },
+    "archer": {
+        "cost": 2,
+        "attack_ranged": "d6",
+        "attack_melee": "",
+        "defense": "d4",
+        "movement": 2,
+        "range": 2
+    },
+    "knight": {
+        "cost": 3,
+        "attack_ranged": "",
+        "attack_melee": "d12",
+        "defense": "d4",
+        "movement": 4,
+        "range": 0
+    },
+    "defender": {
+        "cost": 3,
+        "attack_ranged": "",
+        "attack_melee": "d6",
+        "defense": "d12",
+        "movement": 1,
+        "range": 0
+    },
+    "catapult": {
+        "cost": 3,
+        "attack_ranged": "d13",
+        "attack_melee": "",
+        "defense": "d0",
+        "movement": 1,
+        "range": 3
+    }
+}
