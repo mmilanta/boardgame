@@ -1,8 +1,9 @@
 from random import randint
+from typing import Dict
 
 
 class DiceSet:
-    def __init__(self, dice_dictionary: str) -> None:
+    def __init__(self, dice_dictionary: Dict) -> None:
         self.dice_dictionary = dice_dictionary
 
     def roll(self):
@@ -22,14 +23,15 @@ class DiceSet:
     def is_zero(self):
         return len(self.dice_dictionary) == 0
 
+    @staticmethod
     def from_dice_code(dice_code: str):
-        dice_dictionary = {}
+        dice_dictionary: Dict = {}
         if dice_code == "":
             return DiceSet(dice_dictionary)
         dices = dice_code.split(" ")
         for dice in dices:
-            n_dice, dice_size = dice.split("d")
-            n_dice = 1 if n_dice == "" else int(n_dice)
-            dice_size = int(dice_size)
+            n_dice_str, dice_size_str = dice.split("d")
+            n_dice = 1 if n_dice_str == "" else int(n_dice_str)
+            dice_size = int(dice_size_str)
             dice_dictionary[dice_size] = n_dice
         return DiceSet(dice_dictionary)

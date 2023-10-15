@@ -1,6 +1,6 @@
 from game_logic.board import Board, Coord
-from game_logic.player import Player
 from game_logic.game import Game
+from game_logic.player import Player
 
 
 def main():

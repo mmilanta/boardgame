@@ -1,7 +1,8 @@
-from .board import Coord
-from .player import Player
 import json
+
+from .board import Coord
 from .dice import DiceSet
+from .player import Player
 
 
 class Unit:
@@ -31,7 +32,16 @@ class Unit:
 
 
 class UnitStats:
-    def __init__(self, kind: str, cost: int, attack_melee: DiceSet, attack_ranged: DiceSet, defense: DiceSet, movement: int, range: int) -> None:
+    def __init__(
+        self,
+        kind: str,
+        cost: int,
+        attack_melee: DiceSet,
+        attack_ranged: DiceSet,
+        defense: DiceSet,
+        movement: int,
+        range: int,
+    ) -> None:
         self.kind = kind
         self.cost = cost
         self.attack_melee = attack_melee
@@ -40,13 +50,18 @@ class UnitStats:
         self.movement = movement
         self.range = range
 
+    @staticmethod
     def from_kind(kind: str):
         stats = json.load(open("game_logic/units_stats.json"))
         kwargs = {
             "kind": kind,
             "cost": stats[kind]["cost"],
-            "attack_melee": DiceSet.from_dice_code(stats[kind]["attack_melee"]),
-            "attack_ranged": DiceSet.from_dice_code(stats[kind]["attack_ranged"]),
+            "attack_melee": DiceSet.from_dice_code(
+                stats[kind]["attack_melee"]
+            ),
+            "attack_ranged": DiceSet.from_dice_code(
+                stats[kind]["attack_ranged"]
+            ),
             "defense": DiceSet.from_dice_code(stats[kind]["defense"]),
             "movement": stats[kind]["movement"],
             "range": stats[kind]["range"],

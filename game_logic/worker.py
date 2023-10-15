@@ -1,9 +1,13 @@
-from board import Coord
-from player import Player
+from typing import Optional
+
+from .board import Coord
+from .player import Player
 
 
 class Worker:
-    def __init__(self, location: Coord, id, owner: Player, name: str) -> None:
+    def __init__(
+        self, location: Coord, id, owner: Player, name: Optional[str] = None
+    ) -> None:
         self.location = location
         self.owner = owner
         self.id = id

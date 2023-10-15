@@ -1,22 +1,22 @@
-from typing import List
-from copy import deepcopy
 import logging
+from copy import deepcopy
+from typing import List
 
 from .board import Board, Coord
 from .player import Player
-from .worker import Worker
 from .units import Unit
+from .worker import Worker
 
 logger = logging.getLogger()
 
 
 class Game:
     def __init__(self, board: Board, players: List[Player]) -> None:
-        self.board = board
-        self.players = players
-        self.units = []
-        self.workers = []
-        self.current_player_idx = 0
+        self.board: Board = board
+        self.players: List[Player] = players
+        self.units: List[Unit] = []
+        self.workers: List[Worker] = []
+        self.current_player_idx: int = 0
 
     @property
     def current_player(self):
@@ -43,7 +43,10 @@ class Game:
         if unit is None:
             raise ValueError(f"Unit not found with id {unit_id}")
         if player != unit.owner:
-            raise ValueError(f"Unit not owned. Current player is {player.id}. Owner is {unit.owner.id}")
+            raise ValueError(
+                f"""Unit not owned. Current player is {player.id}.
+                Owner is {unit.owner.id}"""
+            )
         return unit
 
     def _worker_from_location(self, location: Coord):
@@ -63,37 +66,57 @@ class Game:
         unit.move_to(move_to)
         return 1
 
-    def action_attack(self, player: Player, attacking_unit_ids: List[int], attacked_unit_id: int):
+    def action_attack(
+        self,
+        player: Player,
+        attacking_unit_ids: List[int],
+        attacked_unit_id: int,
+    ):
         self._check_current_player(player)
 
         attacked_unit = self._unit_from_id(attacked_unit_id)
         if attacked_unit is None:
             raise ValueError(f"Unit not found with id {attacked_unit_id}")
         if attacked_unit.owner == player:
-            raise ValueError(f"Cannot attach owned unit. Current player is {player.id}. Owner is {attacked_unit.owner.id}")
+            raise ValueError(
+                f"""Cannot attach owned unit.
+                Current player is {player.id}.
+                Owner is {attacked_unit.owner.id}"""
+            )
 
         attacking_units = []
         for attacking_unit_id in attacking_unit_ids:
-            attacking_units.append(self._select_unit_from_id_and_player(attacking_unit_id))
+            attacking_units.append(
+                self._select_unit_from_id_and_player(attacking_unit_id, player)
+            )
 
         attacking_roll = 0
         for attacking_unit in attacking_units:
             if attacking_unit.location.distance(attacked_unit.location) == 0:
-                raise ValueError("Incosistent status: attacking unit in the same cell as attacker")
+                raise ValueError(
+                    """Incosistent status:
+                    attacking unit in the same cell as attacker"""
+                )
             if attacking_unit.location.distance(attacked_unit.location) > 1:
-                if attacking_unit.sets.attack_melee.is_zero:
+                if attacking_unit.stats.attack_melee.is_zero:
                     raise ValueError("Melee unit used for ranged attack")
-                attacking_roll += attacking_unit.sets.attack_ranged.roll()
+                attacking_roll += attacking_unit.stats.attack_ranged.roll()
             if attacking_unit.location.distance(attacked_unit.location) == 1:
-                if attacked_unit.stats.attack_melee.expected() >= attacked_unit.stats.attack_ranged.expected():
-                    attacking_roll += attacking_unit.sets.attack_melee.roll()
+                if (
+                    attacked_unit.stats.attack_melee.expected()
+                    >= attacked_unit.stats.attack_ranged.expected()
+                ):
+                    attacking_roll += attacking_unit.stats.attack_melee.roll()
                 else:
-                    attacking_roll += attacking_unit.sets.attack_ranged.roll()
+                    attacking_roll += attacking_unit.stats.attack_ranged.roll()
             if attacking_unit.actions == 0:
                 raise ValueError("Attack no possible: no actions left")
 
-        attacked_roll = attacked_unit.stats.defence.roll()
-        logger.info(f"Unit {attacking_unit_ids} attack {attacked_unit_id}. Total dice {attacking_roll} vs {attacked_roll}.")
+        attacked_roll = attacked_unit.stats.defense.roll()
+        logger.info(
+            f"""Unit {attacking_unit_ids} attack {attacked_unit_id}.
+            Total dice {attacking_roll} vs {attacked_roll}."""
+        )
 
         for attacking_unit in attacking_units:
             attacking_unit.actions = 0
@@ -102,7 +125,14 @@ class Game:
             self.units.remove(attacked_unit)
             # pop unit from the list
             for attacking_unit in attacking_units:
-                if attacking_unit.location.distance(attacked_unit.location) == 1 and attacked_unit.stats.attack_melee.expected() >= attacked_unit.stats.attack_ranged.expected():
+                if (
+                    attacking_unit.location.distance(attacked_unit.location)
+                    == 1
+                    and attacked_unit.stats.attack_melee.expected()
+                    >= attacked_unit.stats.attack_ranged.expected()
+                ):
+                    # needed to move
+                    attacking_unit.actions += 1
                     attacking_unit.move_to(attacked_unit.location)
         return 1
 
@@ -140,7 +170,7 @@ class Game:
                 unit.reset_upkeep()
 
         for worker in self.workers:
-            if worker.owner == worker.current_player:
+            if worker.owner == self.current_player:
                 self.current_player.budget += worker.yield_resources()
 
     def serialize(self):
@@ -160,5 +190,7 @@ class Game:
             for col in range(self.board.width):
                 output[row][col] = "  "
         for unit in self.units:
-            output[unit.location.row][unit.location.col] = unit.stats.kind[0] + str(unit.owner.id)[0]
+            output[unit.location.row][unit.location.col] = (
+                unit.stats.kind[0] + str(unit.owner.id)[0]
+            )
         return "\n".join(["|".join(row) for row in output])
