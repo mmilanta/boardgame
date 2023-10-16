@@ -1,4 +1,5 @@
 import json
+from typing import Dict
 
 from .board import Coord
 from .dice import DiceSet
@@ -6,10 +7,12 @@ from .player import Player
 
 
 class Unit:
-    def __init__(self, location: Coord, id, owner: Player, kind: str) -> None:
-        self.location = location
-        self.owner = owner
-        self.id = id
+    def __init__(
+        self, location: Coord, id: int, owner: Player, kind: str
+    ) -> None:
+        self.location: Coord = location
+        self.owner: Player = owner
+        self.id: int = id
         self.stats = UnitStats.from_kind(kind)
         self.actions = self.stats.movement
 
@@ -19,13 +22,27 @@ class Unit:
         self.actions -= self.location.distance(to)
         self.location = to
 
-    def serialize(self):
+    def to_dict(self):
         return {
-            "location": self.location,
+            "location": self.location.to_dict(),
             "owner_id": self.owner.id,
             "id": self.id,
             "kind": self.stats.kind,
+            "actions": self.actions,
         }
+
+    @staticmethod
+    def from_dict(Unit_dict: Dict) -> "Unit":
+        new_unit = Unit(
+            location=Coord.from_dict(Unit_dict["location"]),
+            id=Unit_dict["id"],
+            owner=Player(
+                0, 0
+            ),  # TODO: implement a smart way to link to the owner
+            kind=Unit_dict["kind"],
+        )
+        new_unit.actions = Unit_dict["actions"]
+        return new_unit
 
     def reset_upkeep(self):
         self.actions = self.stats.movement

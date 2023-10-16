@@ -1,3 +1,6 @@
+from typing import Dict
+
+
 class Player:
     id: int
     budget: int
@@ -15,5 +18,13 @@ class Player:
         assert isinstance(__value, Player)
         return self.id == __value.id
 
-    def serialize(self):
-        return {"id": self.id, "budget": self.budget}
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "budget": self.budget,
+            "worker_to_place": self.worker_to_place,
+        }
+
+    @staticmethod
+    def from_dict(dict_Player: Dict):
+        return Player(**dict_Player)

@@ -173,19 +173,40 @@ class Game:
             if worker.owner == self.current_player:
                 self.current_player.budget += worker.yield_resources()
 
-    def serialize(self):
+    def to_dict(self):
         return {
-            "board": self.board.serialize(),
-            "players": [player.serialize() for player in self.players],
-            "current_player": self.current_player.serialize(),
-            "units": [unit.serialize() for unit in self.units],
+            "board": self.board.to_dict(),
+            "players": [player.to_dict() for player in self.players],
+            "current_player_id": self.current_player.id,
+            "units": [unit.to_dict() for unit in self.units],
         }
+
+    @staticmethod
+    def from_dict(dict_Game):
+        players = [
+            Player.from_dict(dict_Player)
+            for dict_Player in dict_Game["players"]
+        ]
+        new_game = Game(
+            board=Board.from_dict(dict_Game["board"]), players=players
+        )
+        current_player_idxs = [
+            i
+            for i, player in enumerate(players)
+            if player.id == dict_Game["current_player_id"]
+        ]
+        assert len(current_player_idxs) == 1
+        new_game.current_player_idx = current_player_idxs[0]
+        new_game.units = [
+            Unit.from_dict(dict_Unit) for dict_Unit in dict_Game["units"]
+        ]
+        return new_game
 
     def render(self):
         for player in self.players:
             print(f"{player.id}: {player.budget}$")
         print("---" * self.board.width)
-        output = deepcopy(self.board.board)
+        output = deepcopy(self.board.raw_board)
         for row in range(self.board.height):
             for col in range(self.board.width):
                 output[row][col] = "  "

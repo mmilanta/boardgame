@@ -17,7 +17,7 @@ class Worker:
     def yield_resources(self):
         return self.yields
 
-    def serialize(self):
+    def to_dict(self):
         return {
             "location": self.location,
             "owner_id": self.owner.id,
