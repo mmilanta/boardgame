@@ -27,4 +27,6 @@ class Player:
 
     @staticmethod
     def from_dict(dict_Player: Dict):
-        return Player(**dict_Player)
+        out = Player(budget=dict_Player["budget"], id=dict_Player["id"])
+        out.worker_to_place = dict_Player["worker_to_place"]
+        return out

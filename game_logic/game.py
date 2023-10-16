@@ -197,8 +197,18 @@ class Game:
         ]
         assert len(current_player_idxs) == 1
         new_game.current_player_idx = current_player_idxs[0]
+
+        def get_player_from_id(id: int):
+            for p in players:
+                if p.id == id:
+                    return p
+            raise ValueError("This id does not belong to any player")
+
         new_game.units = [
-            Unit.from_dict(dict_Unit) for dict_Unit in dict_Game["units"]
+            Unit.from_dict(
+                dict_Unit, get_player_from_id(dict_Unit["owner_id"])
+            )
+            for dict_Unit in dict_Game["units"]
         ]
         return new_game
 

@@ -32,13 +32,11 @@ class Unit:
         }
 
     @staticmethod
-    def from_dict(Unit_dict: Dict) -> "Unit":
+    def from_dict(Unit_dict: Dict, owner: Player) -> "Unit":
         new_unit = Unit(
             location=Coord.from_dict(Unit_dict["location"]),
             id=Unit_dict["id"],
-            owner=Player(
-                0, 0
-            ),  # TODO: implement a smart way to link to the owner
+            owner=owner,  # TODO: implement a smart way to link to the owner
             kind=Unit_dict["kind"],
         )
         new_unit.actions = Unit_dict["actions"]

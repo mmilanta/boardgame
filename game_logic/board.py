@@ -35,16 +35,14 @@ class Coord:
         self.col: int = col
 
     def _check_bounds(self, board: Board):
-        if not (
+        return (
             self.row >= 0
             and self.row <= board.height
             and self.col >= 0
             and self.col <= board.width
-        ):
-            raise ValueError("coordinate out of bounds")
+        )
 
     def distance(self, to) -> int:
-        to._check_bounds()
         return max(abs(self.row - to.row), abs(self.col - to.col))
 
     def __eq__(self, __value: object) -> bool:
