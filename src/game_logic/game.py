@@ -173,6 +173,16 @@ class Game:
             if worker.owner == self.current_player:
                 self.current_player.budget += worker.yield_resources()
 
+    def __eq__(self, __value: object) -> bool:
+        assert isinstance(__value, Game)
+        return (
+            self.board == __value.board
+            and self.players == __value.players
+            and self.units == __value.units
+            and self.workers == __value.workers
+            and self.current_player_idx == __value.current_player_idx
+        )
+
     def to_dict(self):
         return {
             "board": self.board.to_dict(),

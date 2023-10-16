@@ -16,9 +16,13 @@ class Player:
 
     def __eq__(self, __value: object) -> bool:
         assert isinstance(__value, Player)
-        return self.id == __value.id
+        if self.id != __value.id:
+            return False
+        assert self.budget == __value.budget
+        assert self.worker_to_place == __value.worker_to_place
+        return True
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         return {
             "id": self.id,
             "budget": self.budget,
@@ -26,7 +30,7 @@ class Player:
         }
 
     @staticmethod
-    def from_dict(dict_Player: Dict):
+    def from_dict(dict_Player: Dict) -> "Player":
         out = Player(budget=dict_Player["budget"], id=dict_Player["id"])
         out.worker_to_place = dict_Player["worker_to_place"]
         return out

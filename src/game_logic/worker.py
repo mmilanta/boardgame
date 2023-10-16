@@ -24,3 +24,13 @@ class Worker:
             "id": self.id,
             "name": self.name,
         }
+
+    def __eq__(self, __value: object) -> bool:
+        assert isinstance(__value, Worker)
+        if self.id != __value.id:
+            return False
+        assert self.location == __value.location
+        assert self.owner == __value.owner
+        assert self.name == __value.name
+        assert self.yields == __value.yields
+        return True

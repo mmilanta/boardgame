@@ -19,6 +19,10 @@ class DiceSet:
             out += self.dice_dictionary[dice_size] * (dice_size + 1) / 2
         return out
 
+    def __eq__(self, __value: object) -> bool:
+        assert isinstance(__value, DiceSet)
+        return self.dice_dictionary == __value.dice_dictionary
+
     @property
     def is_zero(self):
         return len(self.dice_dictionary) == 0

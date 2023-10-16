@@ -5,6 +5,10 @@ class Board:
     def __init__(self, raw_board: List[List[int]]) -> None:
         self.raw_board = raw_board
 
+    def __eq__(self, __value: object) -> bool:
+        assert isinstance(__value, Board)
+        return self.raw_board == __value.raw_board
+
     @property
     def height(self):
         return len(self.raw_board)

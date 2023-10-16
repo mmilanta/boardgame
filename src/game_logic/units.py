@@ -31,6 +31,16 @@ class Unit:
             "actions": self.actions,
         }
 
+    def __eq__(self, __value: object) -> bool:
+        assert isinstance(__value, Unit)
+        if self.id != __value.id:
+            return False
+        assert self.location == __value.location
+        assert self.owner == __value.owner
+        assert self.stats == __value.stats
+        assert self.actions == __value.actions
+        return True
+
     @staticmethod
     def from_dict(Unit_dict: Dict, owner: Player) -> "Unit":
         new_unit = Unit(
@@ -82,3 +92,15 @@ class UnitStats:
             "range": stats[kind]["range"],
         }
         return UnitStats(**kwargs)
+
+    def __eq__(self, __value: object) -> bool:
+        assert isinstance(__value, UnitStats)
+        if self.kind != __value.kind:
+            return False
+        assert self.cost == __value.cost
+        assert self.attack_melee == __value.attack_melee
+        assert self.attack_ranged == __value.attack_ranged
+        assert self.defense == __value.defense
+        assert self.movement == __value.movement
+        assert self.range == __value.range
+        return True
