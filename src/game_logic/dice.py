@@ -1,41 +1,61 @@
+import logging
 from random import randint
-from typing import Dict
+from typing import List
+
+from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
-class DiceSet:
-    def __init__(self, dice_dictionary: Dict) -> None:
-        self.dice_dictionary = dice_dictionary
+class Dice(BaseModel):
+    dice_size: int
 
-    def roll(self):
+    def roll(self) -> int:
+        r = randint(1, self.dice_size)
+        logger.info(f"dice of size {self.dice_size} rolled {r}")
+        return r
+
+    def expected(self) -> float:
+        return (self.dice_size + 1) / 2
+
+    def __eq__(self, __value: object) -> bool:
+        assert isinstance(__value, Dice)
+        return self.dice_size == __value.dice_size
+
+
+class DiceSet(BaseModel):
+    dices: List[Dice]
+
+    def roll(self) -> int:
         out = 0
-        for dice_size in self.dice_dictionary:
-            for _ in range(self.dice_dictionary[dice_size]):
-                out += randint(1, dice_size)
+        for dice in self.dices:
+            out += dice.roll()
         return out
 
-    def expected(self):
-        out = 0
-        for dice_size in self.dice_dictionary:
-            out += self.dice_dictionary[dice_size] * (dice_size + 1) / 2
+    def expected(self) -> float:
+        out = 0.0
+        for dice in self.dices:
+            out += dice.expected()
         return out
 
     def __eq__(self, __value: object) -> bool:
         assert isinstance(__value, DiceSet)
-        return self.dice_dictionary == __value.dice_dictionary
+        return self.dices == __value.dices
 
     @property
     def is_zero(self):
-        return len(self.dice_dictionary) == 0
+        return len(self.dices) == 0
 
     @staticmethod
     def from_dice_code(dice_code: str):
-        dice_dictionary: Dict = {}
+        dices = []
         if dice_code == "":
-            return DiceSet(dice_dictionary)
-        dices = dice_code.split(" ")
-        for dice in dices:
+            return DiceSet(dices=[])
+        dices_str = dice_code.split(" ")
+        for dice in dices_str:
             n_dice_str, dice_size_str = dice.split("d")
             n_dice = 1 if n_dice_str == "" else int(n_dice_str)
             dice_size = int(dice_size_str)
-            dice_dictionary[dice_size] = n_dice
-        return DiceSet(dice_dictionary)
+            for _ in range(n_dice):
+                dices.append(Dice(dice_size=dice_size))
+        return DiceSet(dices=dices)

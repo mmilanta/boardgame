@@ -1,9 +1,21 @@
-from typing import Dict, List
+from typing import List
+
+from pydantic import BaseModel, ValidationError, validator
 
 
-class Board:
-    def __init__(self, raw_board: List[List[int]]) -> None:
-        self.raw_board = raw_board
+class Board(BaseModel):
+    raw_board: List[List[int]]
+
+    @validator("raw_board")
+    def raw_board_must_be_rectangular(cls, v):
+        for row in v:
+            if len(row) != len(v[0]):
+                raise ValidationError("board must be rectangular")
+        return v
+
+    @staticmethod
+    def build_empty(width: int, height: int) -> "Board":
+        return Board(raw_board=[[-1] * width for _ in range(height)])
 
     def __eq__(self, __value: object) -> bool:
         assert isinstance(__value, Board)
@@ -17,34 +29,10 @@ class Board:
     def width(self):
         return len(self.raw_board[0])
 
-    def to_dict(self):
-        return self.raw_board
 
-    @staticmethod
-    def from_dict(dict_Board: List[List[int]]) -> "Board":
-        return Board(dict_Board)
-
-    @staticmethod
-    def build_empty_board(width: int, height: int) -> "Board":
-        return Board(raw_board=[[-1] * width for _ in range(height)])
-
-
-class Coord:
+class Coord(BaseModel):
     row: int
     col: int
-    board: Board
-
-    def __init__(self, row: int, col: int) -> None:
-        self.row: int = row
-        self.col: int = col
-
-    def _check_bounds(self, board: Board):
-        return (
-            self.row >= 0
-            and self.row <= board.height
-            and self.col >= 0
-            and self.col <= board.width
-        )
 
     def distance(self, to) -> int:
         return max(abs(self.row - to.row), abs(self.col - to.col))
@@ -52,16 +40,3 @@ class Coord:
     def __eq__(self, __value: object) -> bool:
         assert isinstance(__value, Coord)
         return self.row == __value.row and self.col == __value.col
-
-    def to_dict(self):
-        return {"row": self.row, "col": self.col}
-
-    @staticmethod
-    def from_dict(dict_Coord: Dict):
-        return Coord(dict_Coord["row"], dict_Coord["col"])
-
-    @staticmethod
-    def from_row_col(row: int, col: int, board: Board):
-        out = Coord(row, col)
-        assert out._check_bounds(board)
-        return out
