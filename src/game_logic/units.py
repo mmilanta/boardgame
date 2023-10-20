@@ -68,7 +68,7 @@ class Unit(BaseModel):
         if self.id != __value.id:
             return False
         assert self.location == __value.location
-        assert self.owner == __value.owner
+        assert self.owner_id == __value.owner_id
         assert self.stats == __value.stats
         assert self.actions == __value.actions
         return True

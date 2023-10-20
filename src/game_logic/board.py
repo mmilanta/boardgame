@@ -1,12 +1,24 @@
 from typing import List
 
-from pydantic import BaseModel, ValidationError, validator
+from pydantic import BaseModel, ValidationError, field_validator
+
+
+class Coord(BaseModel):
+    row: int
+    col: int
+
+    def distance(self, to) -> int:
+        return max(abs(self.row - to.row), abs(self.col - to.col))
+
+    def __eq__(self, __value: object) -> bool:
+        assert isinstance(__value, Coord)
+        return self.row == __value.row and self.col == __value.col
 
 
 class Board(BaseModel):
     raw_board: List[List[int]]
 
-    @validator("raw_board")
+    @field_validator("raw_board")
     def raw_board_must_be_rectangular(cls, v):
         for row in v:
             if len(row) != len(v[0]):
@@ -29,14 +41,5 @@ class Board(BaseModel):
     def width(self):
         return len(self.raw_board[0])
 
-
-class Coord(BaseModel):
-    row: int
-    col: int
-
-    def distance(self, to) -> int:
-        return max(abs(self.row - to.row), abs(self.col - to.col))
-
-    def __eq__(self, __value: object) -> bool:
-        assert isinstance(__value, Coord)
-        return self.row == __value.row and self.col == __value.col
+    def valid_coord(self, coord: Coord) -> bool:
+        return 0 <= coord.col < self.width and 0 <= coord.row < self.height
