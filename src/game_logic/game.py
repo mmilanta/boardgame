@@ -20,14 +20,18 @@ class Game(BaseModel):
     def players_unique_id(cls, v):
         player_ids = [p.id for p in v]
         if len(player_ids) > len(set(player_ids)):
-            raise ValidationError("Player ids must be unique")
+            raise ValidationError(
+                "Game model corrupted: Player ids must be unique"
+            )
         return v
 
     @field_validator("units")
     def units_unique_id(cls, v):
         units_ids = [u.id for u in v]
         if len(units_ids) > len(set(units_ids)):
-            raise ValidationError("Unit ids must be unique")
+            raise ValidationError(
+                "Game model corrupted: Unit ids must be unique"
+            )
         return v
 
     @field_validator("units")
@@ -36,7 +40,8 @@ class Game(BaseModel):
         for unit in v:
             if unit.owner_id not in players_ids:
                 raise ValidationError(
-                    "Unit owner id must correspond to existing player"
+                    """Game model corrupted:
+                    Unit owner id must correspond to existing player"""
                 )
         return v
 
@@ -58,27 +63,24 @@ class Game(BaseModel):
     def current_player(self):
         return self.players[self.current_player_idx]
 
-    def check_current_player(self, player_id: int):
-        if player_id != self.current_player.id:
-            raise ValueError("Wrong player is moving")
-
     def unit_from_location(self, location: Coord) -> Optional[Unit]:
         for unit in self.units:
             if unit.location == location:
                 return unit
         return None
 
-    def unit_from_id(self, unit_id: int):
+    def unit_from_id(self, unit_id: int) -> Unit:
         for unit in self.units:
             if unit.id == unit_id:
                 return unit
+        raise ValueError(f"Unit {unit_id} not found")
         return None
 
-    def player_from_id(self, player_id: int):
+    def player_from_id(self, player_id: int) -> Player:
         for player in self.players:
             if player.id == player_id:
                 return player
-        return None
+        raise ValueError(f"Player {player_id} not found")
 
     def build_empty(board: Board, players: List[Player]) -> "Game":
         return Game(
