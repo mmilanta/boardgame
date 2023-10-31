@@ -95,7 +95,7 @@ def test_game(board, players, units, current_player_idx):
 def test_diceset(diceset_str):
     diceset = DiceSet.from_dice_code(diceset_str)
     expected = diceset.expected()
-    N = 10_000
+    N = 100_000
     mean_roll = 0
     for _ in range(N):
         mean_roll += diceset.roll()

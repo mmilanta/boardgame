@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from enum import Enum
 from typing import List, Union
 
@@ -70,8 +71,6 @@ class Action(BaseModel):
 
 
 def action_move_unit(game: Game, params: ActionParamMoveUnit):
-    game.check_current_player(params.player_id)
-
     if game.unit_from_location(params.move_to) is not None:
         raise IllegalActionException(
             f"Moving to occupied cell {params.move_to}"
@@ -86,8 +85,6 @@ def action_move_unit(game: Game, params: ActionParamMoveUnit):
 
 
 def action_attack(game: Game, params: ActionParamAttack):
-    game.check_current_player(params.player_id)
-
     attacked_unit = game.unit_from_id(params.attacked_unit_id)
     if attacked_unit is None:
         raise IllegalActionException(
@@ -158,7 +155,6 @@ def action_attack(game: Game, params: ActionParamAttack):
 
 
 def action_build_unit(game: Game, params: ActionParamBuildUnit):
-    game.check_current_player(params.player_id)
     if game.unit_from_location(params.location) is not None:
         raise IllegalActionException(
             f"Building unit in occupied cell {params.location}"
@@ -187,7 +183,6 @@ def action_build_unit(game: Game, params: ActionParamBuildUnit):
 
 
 def action_end_turn(game: Game, params: ActionParamEndTurn):
-    game.check_current_player(params.player_id)
     game.current_player_idx += 1
     if game.current_player_idx == len(game.players):
         game.current_player_idx = 0
@@ -198,22 +193,28 @@ def action_end_turn(game: Game, params: ActionParamEndTurn):
             unit.reset_upkeep()
 
 
-def take_action(action: Action) -> Game:
-    filename = f"data/game_{action.game_id}.json"
+def take_action(action: Action, file_dir: str = "data") -> Game:
+    filename = os.path.join(file_dir, f"game_{action.params.game_id}.json")
     # check if files exists
     with open(filename, "r+") as f:
         game_dict = json.loads(f.read())
         game = Game(**game_dict)
 
+        if game.current_player.id != action.params.player_id:
+            raise IllegalActionException(
+                f"Current player ({game.current_player.id}) is not the one "
+                f"taking the action ({action.params.player_id})"
+            )
+
         # action params
         if action.action_type == ActionType.move_unit:
-            action_move_unit(game, ActionParamMoveUnit(**action.params))
+            action_move_unit(game, action.params)
         elif action.action_type == ActionType.attack:
-            action_attack(game, ActionParamAttack(**action.params))
+            action_attack(game, action.params)
         elif action.action_type == ActionType.build_unit:
-            action_build_unit(game, ActionParamBuildUnit(**action.params))
+            action_build_unit(game, action.params)
         elif action.action_type == ActionType.end_turn:
-            action_end_turn(game, ActionParamEndTurn(**action.params))
+            action_end_turn(game, action.params)
 
         f.seek(0)
         f.write(json.dumps(game.model_dump(mode="json")))
@@ -228,3 +229,6 @@ def get_game(game_id: int) -> Game:
         game_dict = json.loads(f.read())
         game = Game(**game_dict)
     return game
+
+
+# TODO Create test for take action with temporary file.

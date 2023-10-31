@@ -82,7 +82,7 @@ class Unit(BaseModel):
         return UnitStats.from_type(self.type)
 
     def move_to(self, to: Coord, board: Board) -> None:
-        if board.distance(self.location, to) > self.actions:
+        if self.location.distance(to) > self.actions:
             raise IllegalActionException(
                 f"Unit {self.id} cannot move: only {self.actions} actions left"
             )
