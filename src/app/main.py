@@ -1,18 +1,11 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-
 from src.game_logic.actions import Action, get_game, take_action
-from src.game_logic.board import Board
-from src.game_logic.game import Game
-from src.game_logic.player import Player
 from src.game_logic.exceptions import IllegalActionException
+from src.game_logic.game import Game
 
 app = FastAPI()
-
-board = Board.build_empty(10, 10)
-players = [Player(id=i, budget=10) for i in range(2)]
-game = Game.build_empty(board=board, players=players)
 
 
 @app.get("/game")

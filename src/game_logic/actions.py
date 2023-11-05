@@ -4,9 +4,9 @@ import os
 from enum import Enum
 from typing import List, Union
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
-from src.game_logic.board import Coord
+from src.game_logic.board import HexCoord
 from src.game_logic.exceptions import IllegalActionException
 from src.game_logic.game import Game
 from src.game_logic.units import Unit, UnitStats, UnitType
@@ -22,16 +22,14 @@ class ActionType(Enum):
 
 
 class ActionParam(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     game_id: int
     player_id: int
-
-    class Config:
-        extra = "forbid"
 
 
 class ActionParamMoveUnit(ActionParam):
     unit_id: int
-    move_to: Coord
+    move_to: HexCoord
 
 
 class ActionParamAttack(ActionParam):
@@ -40,7 +38,7 @@ class ActionParamAttack(ActionParam):
 
 
 class ActionParamBuildUnit(ActionParam):
-    location: Coord
+    location: HexCoord
     type: UnitType
 
 

@@ -3,24 +3,25 @@ from typing import Tuple
 
 import pytest
 
-from src.game_logic.board import Board, Coord
+from src.game_logic.board import HexBoard, HexCoord
 from src.game_logic.dice import DiceSet
 from src.game_logic.game import Game
 from src.game_logic.player import Player
 from src.game_logic.units import Unit, UnitType
 
 
-@pytest.mark.parametrize("size", [(2, 2), (5, 5), (10, 5)])
-def test_board(size: Tuple[int, int]):
-    board = Board.build_empty(*size)
-    board2 = Board(**json.loads(json.dumps(board.model_dump(mode="json"))))
+@pytest.mark.parametrize("radius", [5, 10, 23])
+def test_board(radius: int):
+    board = HexBoard.build_circular(radius=radius)
+    board2 = HexBoard(**json.loads(json.dumps(board.model_dump(mode="json"))))
+    print(board2)
     assert board == board2
 
 
-@pytest.mark.parametrize("coords", [(2, 3), (15, 5), (10, 5)])
-def test_coord(coords: Tuple[int, int]):
-    coord = Coord(row=coords[0], col=coords[1])
-    coord2 = Coord(**json.loads(json.dumps(coord.model_dump(mode="json"))))
+@pytest.mark.parametrize("coords", [(2, 3, -5), (15, 5, -20), (10, 5, -15)])
+def test_coord(coords: Tuple[int, int, int]):
+    coord = HexCoord(q=coords[0], r=coords[1], s=coords[2])
+    coord2 = HexCoord(**json.loads(json.dumps(coord.model_dump(mode="json"))))
     assert coord == coord2
 
 
@@ -36,11 +37,11 @@ def test_player(id, budget, worker_to_place):
 @pytest.mark.parametrize(
     "location, owner_id, id, type",
     [
-        (Coord(row=2, col=3), 10, 0, UnitType.archer),
-        (Coord(row=3, col=4), 9, 1, UnitType.warrior),
-        (Coord(row=2, col=3), 8, 2, UnitType.catapult),
-        (Coord(row=3, col=4), 7, 3, UnitType.defender),
-        (Coord(row=2, col=3), 6, 4, UnitType.knight),
+        (HexCoord(q=2, r=3, s=-5), 10, 0, UnitType.archer),
+        (HexCoord(q=3, r=4, s=-7), 9, 1, UnitType.warrior),
+        (HexCoord(q=2, r=3, s=-5), 8, 2, UnitType.catapult),
+        (HexCoord(q=3, r=4, s=-7), 7, 3, UnitType.defender),
+        (HexCoord(q=2, r=3, s=-5), 6, 4, UnitType.knight),
     ],
 )
 def test_unit(location, owner_id, id, type):
@@ -55,21 +56,21 @@ def test_unit(location, owner_id, id, type):
     "board, players, units, current_player_idx",
     [
         (
-            Board.build_empty(10, 10),
+            HexBoard.build_circular(10),
             [
                 Player(id=0, budget=10, worker_to_place=False),
                 Player(id=1, budget=10, worker_to_place=False),
             ],
             [
                 Unit(
-                    location=Coord(row=0, col=1),
+                    location=HexCoord(q=0, r=1, s=-1),
                     id=0,
                     owner_id=0,
                     type=UnitType.warrior,
                     actions=0,
                 ),
                 Unit(
-                    location=Coord(row=0, col=1),
+                    location=HexCoord(q=1, r=1, s=-2),
                     id=1,
                     owner_id=1,
                     type=UnitType.archer,

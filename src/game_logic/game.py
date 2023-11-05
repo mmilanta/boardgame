@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ValidationError, field_validator
 
-from src.game_logic.board import Board, Coord
+from src.game_logic.board import HexBoard, HexCoord
 from src.game_logic.player import Player
 from src.game_logic.units import Unit
 
@@ -11,7 +11,7 @@ logger = logging.getLogger()
 
 
 class Game(BaseModel):
-    board: Board
+    board: HexBoard
     players: List[Player]
     units: List[Unit]
     current_player_idx: int
@@ -63,7 +63,7 @@ class Game(BaseModel):
     def current_player(self):
         return self.players[self.current_player_idx]
 
-    def unit_from_location(self, location: Coord) -> Optional[Unit]:
+    def unit_from_location(self, location: HexCoord) -> Optional[Unit]:
         for unit in self.units:
             if unit.location == location:
                 return unit
@@ -82,19 +82,7 @@ class Game(BaseModel):
                 return player
         raise ValueError(f"Player {player_id} not found")
 
-    def build_empty(board: Board, players: List[Player]) -> "Game":
+    def build_empty(board: HexBoard, players: List[Player]) -> "Game":
         return Game(
             board=board, players=players, units=[], current_player_idx=0
         )
-
-
-def render_game(game: Game):
-    for player in game.players:
-        print(f"{player.id}: {player.budget}$")
-    print("---" * game.board.width)
-    output = [["  "] * game.board.height for _ in game.board.width]
-    for unit in game.units:
-        output[unit.location.row][unit.location.col] = (
-            unit.stats.kind[0] + str(unit.owner.id)[0]
-        )
-    return "\n".join(["|".join(row) for row in output])

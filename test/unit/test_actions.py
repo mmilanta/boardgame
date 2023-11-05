@@ -7,7 +7,7 @@ import pytest
 from pydantic import ValidationError
 
 from src.game_logic.actions import Action, take_action
-from src.game_logic.board import Board, Coord
+from src.game_logic.board import HexBoard, HexCoord
 from src.game_logic.exceptions import IllegalActionException
 from src.game_logic.game import Game
 from src.game_logic.player import Player
@@ -20,10 +20,11 @@ action_list = [
             "params": {
                 "game_id": 0,
                 "player_id": 0,
-                "unit_id": 0,
+                "unit_id": 2,
                 "move_to": {
-                    "row": 1,
-                    "col": 0,
+                    "q": 2,
+                    "r": 0,
+                    "s": -2,
                 },
             },
         },
@@ -50,8 +51,9 @@ action_list = [
                 "game_id": 0,
                 "player_id": 0,
                 "location": {
-                    "row": 4,
-                    "col": 4,
+                    "q": 3,
+                    "r": 3,
+                    "s": -6,
                 },
                 "type": "warrior",
             },
@@ -75,8 +77,9 @@ action_list = [
                 "player_id": 0,
                 "unit_id": 0,
                 "move_to": {
-                    "row": 0,
-                    "col": 0,
+                    "q": 0,
+                    "r": 0,
+                    "s": 0,
                 },
             },
         },
@@ -103,8 +106,9 @@ action_list = [
                 "game_id": 0,
                 "player_id": 0,
                 "location": {
-                    "row": 0,
-                    "col": 0,
+                    "q": 0,
+                    "r": 0,
+                    "s": 0,
                 },
                 "type": "warrior",
             },
@@ -119,8 +123,9 @@ action_list = [
                 "game_id": 0,
                 "player_id": 0,
                 "location": {
-                    "row": 0,
-                    "col": 0,
+                    "q": 0,
+                    "r": 0,
+                    "s": 0,
                 },
                 "type": "warrior",
             },
@@ -134,32 +139,32 @@ action_list = [
 @pytest.fixture
 def temporary_directory_with_game():
     game = Game(
-        board=Board.build_empty(10, 10),
+        board=HexBoard.build_circular(10),
         players=[Player(id=idx, budget=10) for idx in range(4)],
         units=[
             Unit(
-                location=Coord(row=0, col=0),
+                location=HexCoord(q=0, r=0, s=0),
                 owner_id=0,
                 id=0,
                 type=UnitType.warrior,
                 actions=1,
             ),
             Unit(
-                location=Coord(row=0, col=1),
+                location=HexCoord(q=1, r=-1, s=0),
                 owner_id=0,
                 id=1,
                 type=UnitType.archer,
                 actions=0,
             ),
             Unit(
-                location=Coord(row=1, col=1),
+                location=HexCoord(q=1, r=0, s=-1),
                 owner_id=0,
                 id=2,
                 type=UnitType.catapult,
                 actions=1,
             ),
             Unit(
-                location=Coord(row=2, col=1),
+                location=HexCoord(q=0, r=1, s=-1),
                 owner_id=1,
                 id=3,
                 type=UnitType.warrior,

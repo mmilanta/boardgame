@@ -3,7 +3,7 @@ from enum import Enum
 
 from pydantic import BaseModel
 
-from src.game_logic.board import Board, Coord
+from src.game_logic.board import HexBoard, HexCoord
 from src.game_logic.dice import DiceSet
 from src.game_logic.exceptions import IllegalActionException
 
@@ -58,7 +58,7 @@ class UnitStats(BaseModel):
 
 
 class Unit(BaseModel):
-    location: Coord
+    location: HexCoord
     owner_id: int
     id: int
     type: UnitType
@@ -81,10 +81,11 @@ class Unit(BaseModel):
     def stats(self) -> UnitStats:
         return UnitStats.from_type(self.type)
 
-    def move_to(self, to: Coord, board: Board) -> None:
+    def move_to(self, to: HexCoord, board: HexBoard) -> None:
         if self.location.distance(to) > self.actions:
             raise IllegalActionException(
                 f"Unit {self.id} cannot move: only {self.actions} actions left"
             )
+        # TODO: add physics, now can move on see or through mountains
         self.actions -= self.location.distance(to)
         self.location = to

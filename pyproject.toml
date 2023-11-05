@@ -12,6 +12,7 @@ uvicorn = "^0.23.2"
 pytest = "^7.4.2"
 pytest-cov = "^4.1.0"
 requests = "^2.31.0"
+perlin-noise = "^1.12"
 
 
 [build-system]
