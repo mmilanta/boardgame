@@ -191,8 +191,8 @@ def action_end_turn(game: Game, params: ActionParamEndTurn):
             unit.reset_upkeep()
 
 
-def take_action(action: Action, file_dir: str = "data") -> Game:
-    filename = os.path.join(file_dir, f"game_{action.params.game_id}.json")
+def take_action(action: Action, file_dir: str = "data/games") -> Game:
+    filename = os.path.join(file_dir, f"{action.params.game_id:03}.json")
     # check if files exists
     with open(filename, "r+") as f:
         game_dict = json.loads(f.read())
@@ -217,15 +217,6 @@ def take_action(action: Action, file_dir: str = "data") -> Game:
         f.seek(0)
         f.write(json.dumps(game.model_dump(mode="json")))
         f.truncate()
-    return game
-
-
-def get_game(game_id: int) -> Game:
-    filename = f"data/game_{game_id}.json"
-    # check if files exists
-    with open(filename, "r") as f:
-        game_dict = json.loads(f.read())
-        game = Game(**game_dict)
     return game
 
 

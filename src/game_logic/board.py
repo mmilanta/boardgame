@@ -132,7 +132,7 @@ class HexBoard(BaseModel):
     def get_cell(self, coord: HexCoord) -> Cell:
         if not self.valid_coord(coord):
             raise OutOfBoardException()
-        return self.raw_board[coord.q][coord.r]
+        return self.raw_board[coord.q + self.radius][coord.r + self.radius]
 
 
 class OutOfBoardException(Exception):
