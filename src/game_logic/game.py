@@ -1,4 +1,6 @@
+import json
 import logging
+from os import listdir
 from typing import List, Optional
 
 from pydantic import BaseModel, ValidationError, field_validator
@@ -86,3 +88,23 @@ class Game(BaseModel):
         return Game(
             board=board, players=players, units=[], current_player_idx=0
         )
+
+
+def get_game(game_id: int) -> Game:
+    filename = f"data/games/{game_id:03}.json"
+    # check if files exists
+    with open(filename, "r") as f:
+        game_dict = json.loads(f.read())
+        game = Game(**game_dict)
+    return game
+
+
+def new_game(game: Game, game_id: int | None) -> int:
+    if game_id is None:
+        game_id = 0
+        for file_path in listdir("data/games"):
+            game_id = max(int(file_path[:-5]) + 1, game_id)
+    filename = f"data/games/{game_id:03}.json"
+    with open(filename, "w") as f:
+        f.write(json.dumps(game.model_dump(mode="json")))
+    return game_id

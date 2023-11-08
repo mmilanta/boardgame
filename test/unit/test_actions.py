@@ -174,9 +174,10 @@ def temporary_directory_with_game():
         current_player_idx=0,
     )
     with tempfile.TemporaryDirectory() as tempdir:
+        os.makedirs(os.path.join(tempdir, "games"))
         json.dump(
             game.model_dump(mode="json"),
-            open(os.path.join(tempdir, "game_0.json"), "w"),
+            open(os.path.join(tempdir, "games/000.json"), "w"),
         )
         yield tempdir
 
@@ -191,7 +192,10 @@ def test_action_request_validation(
     try:
         action = Action(**serialized_action)
         assert valid
-        take_action(action, file_dir=temporary_directory_with_game)
+        take_action(
+            action,
+            file_dir=os.path.join(temporary_directory_with_game, "games"),
+        )
     except (ValidationError, IllegalActionException) as e:
         print(e)
         assert not valid

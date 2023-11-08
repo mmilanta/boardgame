@@ -1,18 +1,24 @@
-from perlin_noise import PerlinNoise
 from typing import List
+
+from perlin_noise import PerlinNoise
+
 OCTAVES = 3
-THRESHOLDS = [-.1, 0, .2]
+THRESHOLDS = [-0.2, 0, 0.2]
 
 
 def generate_world(width: int, height: int):
     noise = PerlinNoise(octaves=OCTAVES)
-    noise_discrete = [[noise([i / 10, j / 10]) for j in range(width)] for i in range(height)]
+    noise_discrete = [
+        [noise([i / 10, j / 10]) for j in range(width)] for i in range(height)
+    ]
 
     def digitalize(elem: float, thresholds: List[float]):
         for i, th in enumerate(thresholds):
-            if elem >= th:
+            if elem <= th:
                 return i
         return len(thresholds)
+
     return [
-        [digitalize(elem, THRESHOLDS) for elem in row] for row in noise_discrete
+        [digitalize(elem, THRESHOLDS) for elem in row]
+        for row in noise_discrete
     ]
