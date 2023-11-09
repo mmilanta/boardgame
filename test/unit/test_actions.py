@@ -8,10 +8,11 @@ from pydantic import ValidationError
 
 from src.game_logic.actions import Action, take_action
 from src.game_logic.board import HexBoard, HexCoord
+from src.game_logic.city import City
 from src.game_logic.exceptions import IllegalActionException
 from src.game_logic.game import Game
 from src.game_logic.player import Player
-from src.game_logic.units import Unit, UnitType
+from src.game_logic.units import Unit, UnitType, Worker
 
 action_list = [
     pytest.param(
@@ -50,11 +51,7 @@ action_list = [
             "params": {
                 "game_id": 0,
                 "player_id": 0,
-                "location": {
-                    "q": 3,
-                    "r": 3,
-                    "s": -6,
-                },
+                "city_id": 0,
                 "type": "warrior",
             },
         },
@@ -172,6 +169,29 @@ def temporary_directory_with_game():
             ),
         ],
         current_player_idx=0,
+        cities=[
+            City(
+                location=HexCoord(q=-2, r=-1, s=3),
+                owner_id=0,
+                id=0,
+                name="londra",
+                workers=[
+                    Worker(location=HexCoord(q=-1, r=0, s=1), id=0, yields=1),
+                    Worker(location=HexCoord(q=-1, r=-1, s=2), id=1, yields=1),
+                ],
+                actions=1,
+            ),
+            City(
+                location=HexCoord(q=4, r=1, s=-5),
+                owner_id=1,
+                id=1,
+                name="parigi",
+                workers=[
+                    Worker(location=HexCoord(q=5, r=0, s=-5), id=2, yields=1),
+                    Worker(location=HexCoord(q=6, r=0, s=-6), id=3, yields=1),
+                ],
+            ),
+        ],
     )
     with tempfile.TemporaryDirectory() as tempdir:
         os.makedirs(os.path.join(tempdir, "games"))
@@ -197,5 +217,8 @@ def test_action_request_validation(
             file_dir=os.path.join(temporary_directory_with_game, "games"),
         )
     except (ValidationError, IllegalActionException) as e:
-        print(e)
+        if valid:
+            print("EXCEPTION")
+            print(e)
+            print("DONE")
         assert not valid

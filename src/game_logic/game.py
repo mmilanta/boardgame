@@ -6,6 +6,7 @@ from typing import List, Optional
 from pydantic import BaseModel, ValidationError, field_validator
 
 from src.game_logic.board import HexBoard, HexCoord
+from src.game_logic.city import City
 from src.game_logic.player import Player
 from src.game_logic.units import Unit
 
@@ -16,6 +17,7 @@ class Game(BaseModel):
     board: HexBoard
     players: List[Player]
     units: List[Unit]
+    cities: List[City]
     current_player_idx: int
 
     @field_validator("players")
@@ -33,6 +35,25 @@ class Game(BaseModel):
         if len(units_ids) > len(set(units_ids)):
             raise ValidationError(
                 "Game model corrupted: Unit ids must be unique"
+            )
+        return v
+
+    @field_validator("cities")
+    def cities_unique_id(cls, v):
+        cities_ids = [u.id for u in v]
+        if len(cities_ids) > len(set(cities_ids)):
+            raise ValidationError(
+                "Game model corrupted: Cities ids must be unique"
+            )
+        return v
+
+    @field_validator("cities")
+    def workers_unique_id(cls, v):
+        print(v)
+        workers_ids = sum([[w.id for w in city.workers] for city in v], [])
+        if len(workers_ids) > len(set(workers_ids)):
+            raise ValidationError(
+                "Game model corrupted: Workers ids must be unique"
             )
         return v
 
@@ -71,12 +92,24 @@ class Game(BaseModel):
                 return unit
         return None
 
+    def worker_from_location(self, location: HexCoord) -> Optional[Unit]:
+        for city in self.cities:
+            for worker in city.workers:
+                if worker.location == location:
+                    return worker
+        return None
+
     def unit_from_id(self, unit_id: int) -> Unit:
         for unit in self.units:
             if unit.id == unit_id:
                 return unit
         raise ValueError(f"Unit {unit_id} not found")
-        return None
+
+    def city_from_id(self, city_id: int) -> Unit:
+        for city in self.cities:
+            if city.id == city_id:
+                return city
+        raise ValueError(f"City {city_id} not found")
 
     def player_from_id(self, player_id: int) -> Player:
         for player in self.players:
@@ -86,7 +119,7 @@ class Game(BaseModel):
 
     def build_empty(board: HexBoard, players: List[Player]) -> "Game":
         return Game(
-            board=board, players=players, units=[], current_player_idx=0
+            board=board, players=players, units=[], cities=[], current_player_idx=0
         )
 
 

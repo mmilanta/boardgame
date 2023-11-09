@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, field_validator
 from src.game_logic.board import HexCoord
 from src.game_logic.exceptions import IllegalActionException
 from src.game_logic.game import Game
-from src.game_logic.units import Unit, UnitStats, UnitType
+from src.game_logic.units import Unit, UnitStats, UnitType, Worker
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +18,7 @@ class ActionType(Enum):
     move_unit = "move_unit"
     attack = "attack"
     build_unit = "build_unit"
+    build_worker = "build_worker"
     end_turn = "end_turn"
 
 
@@ -37,8 +38,13 @@ class ActionParamAttack(ActionParam):
     attacked_unit_id: int
 
 
-class ActionParamBuildUnit(ActionParam):
+class ActionParamBuildWorker(ActionParam):
+    city_id: int
     location: HexCoord
+
+
+class ActionParamBuildUnit(ActionParam):
+    city_id: int
     type: UnitType
 
 
@@ -63,6 +69,8 @@ class Action(BaseModel):
             assert isinstance(v, ActionParamAttack)
         elif values.data["action_type"] == ActionType.build_unit:
             assert isinstance(v, ActionParamBuildUnit)
+        elif values.data["action_type"] == ActionType.build_worker:
+            assert isinstance(v, ActionParamBuildWorker)
         elif values.data["action_type"] == ActionType.end_turn:
             assert isinstance(v, ActionParamEndTurn)
         return v
@@ -153,9 +161,14 @@ def action_attack(game: Game, params: ActionParamAttack):
 
 
 def action_build_unit(game: Game, params: ActionParamBuildUnit):
-    if game.unit_from_location(params.location) is not None:
+    city = game.city_from_id(params.city_id)
+    if game.unit_from_location(city.location) is not None:
         raise IllegalActionException(
-            f"Building unit in occupied cell {params.location}"
+            f"Building unit in occupied city {city.id}"
+        )
+    if city.owner_id != params.player_id:
+        raise IllegalActionException(
+            f"Building unit in city not owned {city.id}"
         )
     if (
         game.player_from_id(params.player_id).budget
@@ -165,19 +178,56 @@ def action_build_unit(game: Game, params: ActionParamBuildUnit):
             f"""Player {params.player_id} doesnt have enough
             budget to build {params.type}"""
         )
-
+    if city.actions < 1:
+        raise IllegalActionException(
+            f"""City {city} doesnt have enough
+            actions to build {params.type}"""
+        )
+    city.actions -= 1
     idx = 0
     for unit in game.units:
         idx = max(unit.id, idx) + 1
 
     new_unit = Unit(
-        location=params.location,
+        location=city.location,
         id=idx,
         owner_id=params.player_id,
         type=params.type,
         actions=0,
     )
     game.units.append(new_unit)
+
+
+def action_build_worker(game: Game, params: ActionParamBuildWorker):
+    city = game.city_from_id(params.city_id)
+    if game.worker_from_location(params.location) is not None:
+        raise IllegalActionException(
+            f"Building worker in occupied cell {city.id}"
+        )
+    if city.owner_id != params.player_id:
+        raise IllegalActionException(
+            f"Building worker in city not owned {city.id}"
+        )
+    if city.actions < 1:
+        raise IllegalActionException(
+            f"City {city} doesnt have enough" "actions to build worker"
+        )
+    if not city.is_worker_location_valid(params.location):
+        raise IllegalActionException("Worker location not valid")
+
+    city.actions -= 1
+    idx = 0
+    for city in game.cities:
+        for worker in city.workers:
+            idx = max(worker.id, idx) + 1
+
+    new_worker = Worker(
+        location=params.location,
+        id=idx,
+        owner_id=params.player_id,
+        yields=game.board.get_cell(params.location).yields,
+    )
+    game.units.append(new_worker)
 
 
 def action_end_turn(game: Game, params: ActionParamEndTurn):
@@ -189,6 +239,13 @@ def action_end_turn(game: Game, params: ActionParamEndTurn):
     for unit in game.units:
         if unit.owner_id == game.current_player.id:
             unit.reset_upkeep()
+
+    yields = 0
+    for city in game.cities:
+        if city.owner_id == game.current_player.id:
+            yields += city.reset_upkeep()
+
+    game.current_player.budget += yields
 
 
 def take_action(action: Action, file_dir: str = "data/games") -> Game:
@@ -211,6 +268,8 @@ def take_action(action: Action, file_dir: str = "data/games") -> Game:
             action_attack(game, action.params)
         elif action.action_type == ActionType.build_unit:
             action_build_unit(game, action.params)
+        elif action.action_type == ActionType.build_worker:
+            action_build_worker(game, action.params)
         elif action.action_type == ActionType.end_turn:
             action_end_turn(game, action.params)
 

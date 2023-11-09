@@ -89,3 +89,17 @@ class Unit(BaseModel):
         # TODO: add physics, now can move on see or through mountains
         self.actions -= self.location.distance(to)
         self.location = to
+
+
+class Worker(BaseModel):
+    location: HexCoord
+    id: int
+    yields: int
+
+    def __eq__(self, __value: object) -> bool:
+        assert isinstance(__value, Worker)
+        if self.id != __value.id:
+            return False
+        assert self.location == __value.location
+        assert self.yields == __value.yields
+        return True
