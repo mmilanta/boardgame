@@ -4,10 +4,11 @@ from typing import Tuple
 import pytest
 
 from src.game_logic.board import HexBoard, HexCoord
+from src.game_logic.city import City
 from src.game_logic.dice import DiceSet
 from src.game_logic.game import Game
 from src.game_logic.player import Player
-from src.game_logic.units import Unit, UnitType
+from src.game_logic.units import Unit, UnitType, Worker
 
 
 @pytest.mark.parametrize("radius", [5, 10, 23])
@@ -53,7 +54,7 @@ def test_unit(location, owner_id, id, type):
 
 
 @pytest.mark.parametrize(
-    "board, players, units, current_player_idx",
+    "board, players, units, cities, current_player_idx",
     [
         (
             HexBoard.build_circular(10),
@@ -77,15 +78,29 @@ def test_unit(location, owner_id, id, type):
                     actions=0,
                 ),
             ],
+            [
+                City(
+                    location=HexCoord(q=1, r=1, s=-2),
+                    id=0,
+                    owner_id=0,
+                    name="london",
+                    workers=[
+                        Worker(
+                            location=HexCoord(q=1, r=2, s=-3), id=0, yields=1
+                        )
+                    ],
+                )
+            ],
             0,
         )
     ],
 )
-def test_game(board, players, units, current_player_idx):
+def test_game(board, players, units, cities, current_player_idx):
     game = Game(
         board=board,
         players=players,
         units=units,
+        cities=cities,
         current_player_idx=current_player_idx,
     )
     game2 = Game(**json.loads(json.dumps(game.model_dump(mode="json"))))
